@@ -1,0 +1,66 @@
+classDiagram
+    class State {
+        <<enumeration>>
+        open
+        closed
+    }
+
+    class Event {
+        +str event_type
+        +str author
+        +datetime event_date
+        +str label
+        +str comment
+        +from_json(jobj)
+    }
+
+    class Issue {
+        +str url
+        +str creator
+        +List[str] labels
+        +State state
+        +List[str] assignees
+        +str title
+        +str text
+        +int number
+        +datetime created_date
+        +datetime updated_date
+        +str timeline_url
+        +List[Event] events
+        +from_json(jobj)
+    }
+
+    class DataLoader {
+        -str data_path
+        +get_issues() List[Issue]
+        -_load() List[Issue]
+    }
+
+    class ExampleAnalysis {
+        -str USER
+        +run()
+    }
+
+    %% Modules as classes following course guidelines
+    class run.py {
+        +parse_args()
+    }
+
+    class config.py {
+        +get_parameter(parameter_name, default)
+        +set_parameter(name, value)
+        +overwrite_from_args(args)
+        -_init_config(path)
+        -_get_default_path()
+        -convert_to_typed_value(value)
+    }
+
+    %% Relationships
+    Issue "1" *-- "many" Event : contains
+    Issue -- State : has
+    DataLoader --> Issue : creates
+    ExampleAnalysis --> DataLoader : uses
+    ExampleAnalysis --> config.py : gets parameters
+    run.py --> ExampleAnalysis : invokes
+    run.py --> config.py : uses
+    DataLoader --> config.py : gets data path

@@ -1,0 +1,49 @@
+erDiagram
+
+
+    user }|--o{ issue: assigned
+    label }|--o{ issue: assigned
+    comment }o--|| issue: posted
+    comment }o--|| user: posted
+
+    data_loader }o--o{ user: reads
+    data_loader }o--o{ issue: reads
+    data_loader }o--o{ comment: reads
+    data_loader }o--o{ label: reads
+
+    analysis }o--|| data_loader: uses
+    analysis }|--|{ config: uses
+
+    user{
+        string username
+        string profile_picture_url
+        string email
+    }
+    issue{
+        int number
+        string title
+        bool open
+        string description
+        datetime created
+        datetime modified
+        datetime closed
+    }
+    label{
+        string type
+    }
+    analysis{
+        
+    }
+    config{
+        string filepath 
+        int analysis_mode
+    }
+    data_loader{
+
+    }
+    comment{
+        datetime created
+        string text
+    }
+    
+
