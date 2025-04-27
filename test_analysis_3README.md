@@ -90,4 +90,8 @@ Expected it will run to the end of the code:
 
 Set created_date and updated_date to invalid_date which is wrong date format.
 Expected:
-
+<!--
+        if not issue_data:
+            print("No valid lifecycle data found to analyze.")
+            return
+ -->
