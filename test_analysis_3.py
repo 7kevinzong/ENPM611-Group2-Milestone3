@@ -19,7 +19,8 @@ class TestAnalysis3(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
-    def test_run_with_closed_issues(self, mock_get_parameter, mock_dataloader, mock_show):
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_run_with_closed_issues(self, mock_stdout, mock_get_parameter, mock_dataloader, mock_show):
         mock_get_parameter.side_effect = lambda key: "bug" if key == "label" else 0
 
         fake_issue_data = {
@@ -44,40 +45,48 @@ class TestAnalysis3(unittest.TestCase):
         analysis = Analysis3()
         analysis.run()
 
+        output = mock_stdout.getvalue()
+        self.assertIn("Analyzing 1 closed issues with label bug", output)
+
+
+
     @patch("matplotlib.pyplot.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
-    def test_run_with_no_closed_issues(self, mock_get_parameter, mock_dataloader, mock_show):
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_run_with_no_closed_issues(self,mock_stdout , mock_get_parameter, mock_dataloader, mock_show):
         mock_get_parameter.side_effect = lambda key: "bug" if key == "label" else 0
-        mock_dataloader.return_value.get_issues.return_value = []
 
-        analysis = Analysis3()
-        analysis.run()
-
-    @patch("matplotlib.pyplot.show")
-    @patch("analysis_3.DataLoader")
-    @patch("analysis_3.config.get_parameter")
-    def test_run_with_multiple_labels(self, mock_get_parameter, mock_dataloader, mock_show):
-        mock_get_parameter.side_effect = lambda key: "bug,enhancement" if key == "label" else 0
-
-        issue_data = {
+        fake_issue_data = {
             "number": 1,
-            "title": "Label test",
-            "creator": "dev",
-            "labels": ["bug", "testtest"],
-            "created_date": "2023-02-01T00:00:00Z",
-            "updated_date": "2023-02-02T00:00:00Z",
-            "state": "closed",
-            "events": [],
+            "title": "Fake Issue",
+            "creator": "user1",
+            "labels": ["bug"],
+            "created_date": "2023-01-01T00:00:00Z",
+            "updated_date": "2023-01-05T00:00:00Z",
+            "state": "open",
+            "events": [
+                {
+                    "event_type": "comment",
+                    "author": "user1",
+                    "event_date": "2023-01-02T00:00:00Z",
+                    "comment": "sample comment",
+                }
+            ],
         }
 
-        mock_dataloader.return_value.get_issues.return_value = [Issue(issue_data)]
+        mock_dataloader.return_value.get_issues.return_value = [Issue(fake_issue_data)]
         analysis = Analysis3()
         analysis.run()
+        output = mock_stdout.getvalue()
+        self.assertIn("No closed issues found in the dataset.", output)
+
+
     @patch("matplotlib.pyplot.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
-    def test_run_with_label_mismatch(self, mock_get_parameter, mock_dataloader, mock_show):
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_run_with_label_mismatch(self, mock_stdout, mock_get_parameter, mock_dataloader, mock_show):
         mock_get_parameter.side_effect = lambda key: "security" if key == "label" else 0
 
         issue_data = {
@@ -94,11 +103,14 @@ class TestAnalysis3(unittest.TestCase):
         mock_dataloader.return_value.get_issues.return_value = [Issue(issue_data)]
         analysis = Analysis3()
         analysis.run()
+        output = mock_stdout.getvalue()
+        self.assertIn("Analyzing 0 closed issues with label security", output)
 
     @patch("matplotlib.pyplot.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
-    def test_issue_with_different_comment_author(self, mock_get_parameter, mock_dataloader, mock_show):
+    @patch("sys.stdout", new_callable=StringIO)
+    def test_issue_with_different_comment_author(self,mock_stdout,  mock_get_parameter, mock_dataloader, mock_show):
         mock_get_parameter.side_effect = lambda key: "bug" if key == "label" else 0
 
         issue_data = {
@@ -122,6 +134,8 @@ class TestAnalysis3(unittest.TestCase):
         mock_dataloader.return_value.get_issues.return_value = [Issue(issue_data)]
         analysis = Analysis3()
         analysis.run()
+        output = mock_stdout.getvalue()
+        self.assertIn("Fastest resolution time: 2 days\nSlowest resolution time: 2 days", output)
 
     @patch("matplotlib.pyplot.show")
     @patch("analysis_3.DataLoader")
