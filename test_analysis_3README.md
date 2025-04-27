@@ -95,3 +95,16 @@ Expected:
             print("No valid lifecycle data found to analyze.")
             return
  -->
+
+
+## Coverage report:
+coverage report --show-missing
+Name                 Stmts   Miss  Cover   Missing
+--------------------------------------------------
+analysis_3.py           86      9    90%   51, 61, 125, 179-182, 188-189
+config.py               68     56    18%   17-27, 36-49, 57-69, 78-90, 98-102, 111-123
+data_loader.py          22     12    45%   21-26, 34-37, 43-44, 49
+model.py                63      4    94%   37-38, 72-73
+test_analysis_3.py      74      1    99%   169
+--------------------------------------------------
+TOTAL                  313     82    74%
