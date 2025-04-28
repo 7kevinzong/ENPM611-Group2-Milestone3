@@ -1,24 +1,39 @@
 import unittest
 import os
 import json
+import tempfile
+from unittest import mock
 from unittest.mock import patch, mock_open, Mock, MagicMock
+
 import config
 
-
 class TestConfig(unittest.TestCase):
-
     def setUp(self):
         config._config = None  # Reset before each test
-
-    @patch.dict(os.environ, {"TEST_PARAM": "simple_value"})
+        
     def test_get_parameter_from_env(self):
-        result = config.get_parameter("TEST_PARAM")
-        self.assertEqual(result, "simple_value")
+        os.environ['TEST_PARAM'] = 'test_value'
+        self.assertEqual(config.get_parameter('TEST_PARAM'), 'test_value')
 
-    @patch.dict(os.environ, {"COMPLEX_PARAM": 'json:{"key": "val"}'})
-    def test_get_json_parameter_from_env(self):
-        value = config.get_parameter("COMPLEX_PARAM")
-        self.assertEqual(value, {"key": "val"})
+    def test_get_parameter_from_env_json(self):
+        os.environ['TEST_PARAM'] = 'json:{"key": "value"}'
+        self.assertEqual(config.get_parameter('TEST_PARAM'), {"key": "value"})
+
+    def test_get_parameter_from_config_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filepath = os.path.join(tmpdir, 'config.json')
+            with open(filepath, 'w') as f:
+                json.dump({"PARAM": "file_value"}, f)
+
+            with mock.patch('os.getcwd', return_value=tmpdir):
+                config._config = None
+                self.assertEqual(config.get_parameter('PARAM'), 'file_value')
+
+    def test_convert_to_typed_value_valid_json(self):
+        self.assertEqual(config.convert_to_typed_value('{"a": 1}'), {"a": 1})
+
+    def test_convert_to_typed_value_invalid_json(self):
+        self.assertEqual(config.convert_to_typed_value('invalid'), 'invalid')
 
     @patch.dict(os.environ, {}, clear=True)
     def test_get_parameter_returns_default(self):
