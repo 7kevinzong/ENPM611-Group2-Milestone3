@@ -1,20 +1,14 @@
 import unittest
 import tempfile
-import os
 
 from unittest.mock import patch, mock_open
 import json
+import data_loader
 from data_loader import DataLoader, _ISSUES
 
-# michael additions
 class TestDataLoader(unittest.TestCase):
     def setUp(self):
         data_loader._ISSUES = None
-
-    # test for invalid dataset
-    def test_invalid_dataset_selection(self):
-        with self.assertRaises(ValueError):
-            DataLoader(dataset=2)
 
     # test for if JSON file is empty it returns an empty list
     def test_get_issues_empty_json(self):
@@ -30,8 +24,6 @@ class TestDataLoader(unittest.TestCase):
             issues = loader.get_issues()
             self.assertEqual(issues, [])
 
-        os.remove(path)
-
     # test for error handling if data is malformed
     def test_load_malformed_json_raises(self):
 
@@ -45,10 +37,8 @@ class TestDataLoader(unittest.TestCase):
 
             with self.assertRaises(json.JSONDecodeError):
                 loader.get_issues()
-        os.remove(path)
 
-# remote 
-class TestDataLoader(unittest.TestCase):
+    # test that passing invalid dataset indices to dataloader raises a valueerror
     def test_invalid_dataset_selection(self):
         with self.assertRaises(ValueError):
             DataLoader(2)
@@ -56,6 +46,7 @@ class TestDataLoader(unittest.TestCase):
         with self.assertRaises(ValueError):
             DataLoader(-1)
 
+    # test that the dataloader selects the dataset path based on the dataset index
     @patch("data_loader.config.get_parameter")
     def test_valid_dataset_selection(self, mock_get_parameter):
         mock_get_parameter.side_effect = lambda key: "./partial.json" if key == "ENPM611_PROJECT_DATA_PATH" else "./all.json"
@@ -69,6 +60,8 @@ class TestDataLoader(unittest.TestCase):
         {"id": 1, "title": "Issue 1"},
         {"id": 2, "title": "Issue 2"}
     ]))
+
+    # test the get issues method
     @patch("data_loader.config.get_parameter", return_value="./all.json")
     def test_get_issues(self, mock_get_parameter, mock_open, mock_issue):
         loader = DataLoader()
