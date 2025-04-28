@@ -10,7 +10,7 @@ import config
 class TestConfig(unittest.TestCase):
     def setUp(self):
         config._config = None  # Reset before each test
-        
+
     def test_get_parameter_from_env(self):
         os.environ['TEST_PARAM'] = 'test_value'
         self.assertEqual(config.get_parameter('TEST_PARAM'), 'test_value')
@@ -73,6 +73,17 @@ class TestConfig(unittest.TestCase):
         self.assertTrue(os.environ["OBJ_KEY"].startswith("json:"))
         parsed = json.loads(os.environ["OBJ_KEY"][5:])
         self.assertEqual(parsed, obj)
+
+    @patch("config._get_default_path")
+    @patch("builtins.open", create=True)
+    def test_init_config_handles_invalid_json(self, mock_open, mock_get_path):
+        mock_get_path.return_value = "./invalid.json"
+        mock_open.return_value.__enter__.return_value.read.return_value = "invalid json"
+
+        try:
+            config._init_config()
+        except Exception as e:
+            self.fail(f"_init_config() raised an exception on invalid JSON: {e}")
 
 if __name__ == "__main__":
     unittest.main()

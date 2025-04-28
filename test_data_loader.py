@@ -81,5 +81,15 @@ class TestDataLoader(unittest.TestCase):
         self.assertIs(issues, second_call)
         mock_open.assert_called_once()
 
+    @patch("data_loader.config.get_parameter")
+    def test_data_loader_handles_missing_file_gracefully(self, mock_get_parameter):
+        mock_get_parameter.return_value = "nonexistent_file.json"
+        loader = DataLoader()
+
+        try:
+            loader.get_issues()
+        except Exception as e:
+            self.fail(f"get_issues() raised an exception on missing file: {e}")
+
 if __name__ == '__main__':
     unittest.main()

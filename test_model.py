@@ -103,5 +103,16 @@ class TestIssue(unittest.TestCase):
         self.assertEqual(issue.number, -1)
         self.assertEqual(issue.events, [])
 
+    def test_issue_handles_missing_state_field_gracefully(self):
+        bad_jobj = {
+            "id": 1,
+            "title": "Issue with missing state",
+        }
+
+        try:
+            Issue(bad_jobj)
+        except Exception as e:
+            self.fail(f"Issue constructor raised an exception on missing 'state': {e}")
+
 if __name__ == '__main__':
     unittest.main()
