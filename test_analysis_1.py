@@ -4,9 +4,6 @@ from analysis_1 import Analysis1
 from datetime import datetime
 
 class TestAnalysis1(unittest.TestCase):
-    def setUp(self):
-        self.analysis1 = Analysis1()
-
     @patch("analysis_1.config.get_parameter")
     @patch("analysis_1.DataLoader")
     @patch("analysis_1.plt.show")
@@ -22,9 +19,21 @@ class TestAnalysis1(unittest.TestCase):
         mock_instance = mock_dataloader.return_value
         mock_instance.get_issues.return_value = mock_issues
 
-        self.analysis1.run()
+        analysis = Analysis1()
+        analysis.run()
 
         mock_show.assert_called_once()
+
+    @patch("analysis_1.DataLoader")
+    def test_run_handles_none_issues(self, mock_dataloader):
+        mock_dataloader.return_value.get_issues.return_value = None
+
+        analysis = Analysis1()
+
+        try:
+            analysis.run()
+        except Exception as e:
+            self.fail(f"run() raised an exception when issues=None: {e}")
 
 if __name__ == "__main__":
     unittest.main()

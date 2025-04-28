@@ -6,29 +6,6 @@ from datetime import datetime
 from io import StringIO
 
 class TestAnalysis3(unittest.TestCase):
-    @patch("analysis_3.plt.show")
-    @patch("analysis_3.DataLoader")
-    @patch("analysis_3.config.get_parameter")
-    def test_no_closed_issues(self, mock_get_parameter, mock_dataloader, mock_plt_show):
-        mock_get_parameter.side_effect = lambda key: None
-        mock_dataloader.return_value.get_issues.return_value = [
-            Issue(
-                {
-                    "number": 1,
-                    "title": "Open Issue",
-                    "state": State.open,
-                    "labels": [],
-                    "events": [],
-                    "creator": "user1",
-                    "created_date": "2023-01-01T00:00:00Z",
-                    "updated_date": "2023-01-03T00:00:00Z"
-                }
-            )
-        ]
-
-        analysis = Analysis3()
-        analysis.run()
-
     @patch("analysis_3.config.get_parameter")
     def test_dataset_initialization(self, mock_get_parameter):
         # Simulate a scenario where the dataset is not set in the config
@@ -39,7 +16,7 @@ class TestAnalysis3(unittest.TestCase):
         # Ensure that self.DATASET is set to 0 by default
         self.assertEqual(analysis.DATASET, 0)
 
-    @patch("matplotlib.pyplot.show")
+    @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
     @patch("sys.stdout", new_callable=StringIO)
@@ -71,9 +48,9 @@ class TestAnalysis3(unittest.TestCase):
         output = mock_stdout.getvalue()
         self.assertIn("Analyzing 1 closed issues with label bug", output)
 
+        mock_show.assert_called()
 
-
-    @patch("matplotlib.pyplot.show")
+    @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
     @patch("sys.stdout", new_callable=StringIO)
@@ -104,8 +81,9 @@ class TestAnalysis3(unittest.TestCase):
         output = mock_stdout.getvalue()
         self.assertIn("No closed issues found in the dataset.", output)
 
+        mock_show.assert_not_called()
 
-    @patch("matplotlib.pyplot.show")
+    @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
     @patch("sys.stdout", new_callable=StringIO)
@@ -129,7 +107,9 @@ class TestAnalysis3(unittest.TestCase):
         output = mock_stdout.getvalue()
         self.assertIn("Analyzing 0 closed issues with label security", output)
 
-    @patch("matplotlib.pyplot.show")
+        mock_show.assert_not_called()
+
+    @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
     @patch("sys.stdout", new_callable=StringIO)
@@ -160,7 +140,9 @@ class TestAnalysis3(unittest.TestCase):
         output = mock_stdout.getvalue()
         self.assertIn("Fastest resolution time: 2 days\nSlowest resolution time: 2 days", output)
 
-    @patch("matplotlib.pyplot.show")
+        mock_show.assert_called()
+
+    @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
     @patch("sys.stdout", new_callable=StringIO)
@@ -192,7 +174,7 @@ class TestAnalysis3(unittest.TestCase):
     @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
-    def test_no_valid_lifecycle_data(self, mock_get_parameter, mock_dataloader, mock_plt_show):
+    def test_no_valid_lifecycle_data(self, mock_get_parameter, mock_dataloader, mock_show):
         mock_get_parameter.side_effect = lambda key: None
         mock_dataloader.return_value.get_issues.return_value = [
             Issue(
@@ -212,12 +194,12 @@ class TestAnalysis3(unittest.TestCase):
         analysis = Analysis3()
         analysis.run()
 
-        mock_plt_show.assert_not_called()
+        mock_show.assert_not_called()
 
     @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
-    def test_basic_resolution_analysis(self, mock_get_parameter, mock_dataloader, mock_plt_show):
+    def test_basic_resolution_analysis(self, mock_get_parameter, mock_dataloader, mock_show):
         mock_get_parameter.side_effect = lambda key: None
 
         mock_dataloader.return_value.get_issues.return_value = [
@@ -244,12 +226,12 @@ class TestAnalysis3(unittest.TestCase):
         analysis.run()
 
         self.assertEqual(analysis.LABEL, None)
-        mock_plt_show.assert_called()
+        mock_show.assert_called()
 
     @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
-    def test_filter_by_label(self, mock_get_parameter, mock_dataloader, mock_plt_show):
+    def test_filter_by_label(self, mock_get_parameter, mock_dataloader, mock_show):
         mock_get_parameter.side_effect = lambda key: "bug" if key == "label" else None
 
         mock_dataloader.return_value.get_issues.return_value = [
@@ -296,12 +278,12 @@ class TestAnalysis3(unittest.TestCase):
         analysis = Analysis3()
         analysis.run()
 
-        mock_plt_show.assert_called()
+        mock_show.assert_called()
 
     @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
-    def test_negative_resolution_time_skipped(self, mock_get_parameter, mock_dataloader, mock_plt_show):
+    def test_negative_resolution_time_skipped(self, mock_get_parameter, mock_dataloader, mock_show):
         mock_get_parameter.side_effect = lambda key: None
         mock_dataloader.return_value.get_issues.return_value = [
             Issue(
@@ -322,7 +304,18 @@ class TestAnalysis3(unittest.TestCase):
         analysis = Analysis3()
         analysis.run()
 
-        mock_plt_show.assert_not_called()
+        mock_show.assert_not_called()
+
+    @patch("analysis_3.DataLoader")
+    def test_run_handles_none_issues(self, mock_dataloader):
+        mock_dataloader.return_value.get_issues.return_value = None
+
+        analysis = Analysis3()
+
+        try:
+            analysis.run()
+        except Exception as e:
+            self.fail(f"run() raised an exception when issues=None: {e}")
 
 if __name__ == "__main__":
     unittest.main()

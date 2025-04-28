@@ -13,7 +13,7 @@ class TestAnalysis2(unittest.TestCase):
         analysis = Analysis2()
         self.assertEqual(analysis.DATASET, 1)
 
-    # test if config.get_parameter is not called, DATASET defaults to 0 
+    # test if config.get_parameter is not called, DATASET defaults to 0
     def test_init_sets_default_dataset_when_none(self):
         analysis = Analysis2()
         self.assertEqual(analysis.DATASET, 0)
@@ -56,6 +56,17 @@ class TestAnalysis2(unittest.TestCase):
         self.assertEqual(len(analysis.nxG.nodes()), 0)
         self.assertEqual(len(analysis.nxG.edges()), 0)
         mock_fig.return_value.show.assert_called_once()
+
+    @patch("analysis_2.DataLoader")
+    def test_run_handles_none_issues(self, mock_dataloader):
+        mock_dataloader.return_value.get_issues.return_value = None
+
+        analysis = Analysis2()
+
+        try:
+            analysis.run()
+        except Exception as e:
+            self.fail(f"run() raised an exception when issues=None: {e}")
 
 if __name__ == "__main__":
     unittest.main()

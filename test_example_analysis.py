@@ -50,5 +50,17 @@ class TestExampleAnalysis(unittest.TestCase):
         mock_dataloader.return_value.get_issues.assert_called_once()
         mock_show.assert_called_once()
 
+    @patch("example_analysis.DataLoader")
+    def test_run_handles_none_issues(self, mock_dataloader):
+        mock_dataloader.return_value.get_issues.return_value = None
+
+        analysis = ExampleAnalysis()
+
+        try:
+            analysis.run()
+        except Exception as e:
+            self.fail(f"run() raised an exception when issues=None: {e}")
+
+
 if __name__ == "__main__":
     unittest.main()
