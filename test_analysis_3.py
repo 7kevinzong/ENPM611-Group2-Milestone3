@@ -33,12 +33,12 @@ class TestAnalysis3(unittest.TestCase):
     def test_dataset_initialization(self, mock_get_parameter):
         # Simulate a scenario where the dataset is not set in the config
         mock_get_parameter.side_effect = lambda key: None if key == "dataset" else None
-        
+
         analysis = Analysis3()
-        
+
         # Ensure that self.DATASET is set to 0 by default
         self.assertEqual(analysis.DATASET, 0)
-    
+
     @patch("matplotlib.pyplot.show")
     @patch("analysis_3.DataLoader")
     @patch("analysis_3.config.get_parameter")
@@ -181,13 +181,13 @@ class TestAnalysis3(unittest.TestCase):
 
         mock_dataloader.return_value.get_issues.return_value = [Issue(invalid_issue_data)]
         analysis = Analysis3()
-        
+
         analysis.run()
 
         output = mock_stdout.getvalue()
         self.assertIn("No valid lifecycle data found to analyze.", output)
 
-        mock_plt_show.assert_not_called()
+        mock_show.assert_not_called()
 
     @patch("analysis_3.plt.show")
     @patch("analysis_3.DataLoader")
